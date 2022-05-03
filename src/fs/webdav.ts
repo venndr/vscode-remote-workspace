@@ -367,30 +367,28 @@ export class WebDAVFileSystem extends vscrw_fs.FileSystemBase {
                                                                     ssl ? 443 : 80);
 
         let authenticator: WebDAV.Authenticator;
-        if (!_.isNil(HOST_AND_CRED.user) || !_.isNil(HOST_AND_CRED.password)) {
-            const AUTH_TYPE = vscode_helpers.normalizeString(PARAMS['authtype']);
+        const AUTH_TYPE = vscode_helpers.normalizeString(PARAMS['authtype']);
 
-            switch (AUTH_TYPE) {
-                case '':
-                case 'b':
-                case 'basic':
-                    authenticator = new WebDAV.BasicAuthenticator();
-                    break;
+        switch (AUTH_TYPE) {
+            case '':
+            case 'b':
+            case 'basic':
+                authenticator = new WebDAV.BasicAuthenticator();
+                break;
 
-                case 'd':
-                case 'digest':
-                    authenticator = new WebDAV.DigestAuthenticator();
-                    break;
+            case 'd':
+            case 'digest':
+                authenticator = new WebDAV.DigestAuthenticator();
+                break;
 
-                default:
-                    throw new Error(`Authentication type '${ AUTH_TYPE }' is not supported!`);
-            }
+            default:
+                throw new Error(`Authentication type '${ AUTH_TYPE }' is not supported!`);
         }
 
         const CONN_OPTS: WebDAV.ConnectionOptions = {
             authenticator: authenticator,
-            password: HOST_AND_CRED.password,
-            username: HOST_AND_CRED.user,
+            password: PARAMS['password'] || HOST_AND_CRED.password,
+            username: PARAMS['username'] || HOST_AND_CRED.user,
             url: `http${ ssl ? 's' : '' }://${ HOST_AND_CRED.host }:${ HOST_AND_CRED.port }${ base }`,
         };
 
