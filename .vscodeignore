@@ -9,3 +9,4 @@ tslint.json
 img/**
 pushall.sh
 package-lock.json
+node_modules/**
