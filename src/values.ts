@@ -21,7 +21,6 @@ import * as OS from 'os';
 import * as Path from 'path';
 import * as vscode_helpers from 'vscode-helpers';
 import * as vscrw from './extension';
-import * as vscrw_code from './code';
 
 type ValueProvider = (input: string) => string;
 
@@ -171,20 +170,6 @@ function getValueStorageValue(
                         const STATIC_ENTRY = <ValueStorageStaticEntry>v;
 
                         value = STATIC_ENTRY.value;
-                    }
-                    break;
-
-                case 'code':
-                case 'js':
-                    {
-                        const CODE_ENTRY = <ValueStorageCodeEntry>v;
-
-                        value = vscrw_code.exec({
-                            code: CODE_ENTRY.code,
-                            values: {
-                                'cache': cache,
-                            },
-                        });
                     }
                     break;
 

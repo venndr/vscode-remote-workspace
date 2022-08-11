@@ -16,7 +16,7 @@
  */
 
 import * as _ from 'lodash';
-import * as Moment from 'moment';
+import Moment from 'moment';
 import * as MomentTZ from 'moment-timezone';  // REQUIRED EXTENSION FOR moment MODULE!!!
 import * as Path from 'path';
 import * as vscode from 'vscode';

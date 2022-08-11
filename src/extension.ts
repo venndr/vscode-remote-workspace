@@ -20,8 +20,8 @@
 import * as _ from 'lodash';
 import * as Crypto from 'crypto';
 import * as FSExtra from 'fs-extra';
-import * as Marked from 'marked';
-import * as Moment from 'moment';
+import Marked from 'marked';
+import Moment from 'moment';
 import * as MomentTZ from 'moment-timezone';  // REQUIRED EXTENSION FOR moment MODULE!!!
 import * as Net from 'net';
 import * as OS from 'os';

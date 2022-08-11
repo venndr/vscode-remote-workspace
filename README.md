@@ -11,7 +11,6 @@ Original author Marcel Joachim Kloubert.
    * [About parameters](#about-parameters-)
      * [Import parameters](#import-parameters-)
      * [Placeholders](#placeholders-)
-       * [Code](#code-)
        * [Environment variables](#environment-variables-)
        * [Static](#static-)
    * [WebDAV](#webdav-)
@@ -137,35 +136,6 @@ Parameters, where placeholders DO NOT work:
 
 * `params`
 * `values`
-
-##### Code [[&uarr;](#placeholders-)]
-
-```json
-{
-    "values": {
-        "FOO": {
-            "code": " $h.normalizeString('b' + 'AR') ",
-            "type": "code"
-        }
-    }
-}
-```
-
-Code execution allows you to access the following constants, which contain modules, functions and special values:
-
-| Name | Description |
-| ---- | --------- |
-| `_` | [lodash](https://lodash.com/) module |
-| `$fs` | [fs-extra](https://github.com/jprichardson/node-fs-extra) module |
-| `$h` | [vscode-helpers](https://github.com/mkloubert/vscode-helpers) module |
-| `$l` | [Logger](https://mkloubert.github.io/vscode-helpers/modules/_logging_index_.html) object (s. [Logs](#logs-)) |
-| `$m` | [Moment.js](https://momentjs.com/) module, with [timezone](https://momentjs.com/timezone/) support |
-| `$os` | [os](https://nodejs.org/api/os.html) module |
-| `$p` | [path](https://nodejs.org/api/path.html) module |
-| `$r` | Extened `require()` function, which also allows to use [the modules of that extension](https://github.com/venndr/vscode-webdav-workspace/blob/master/package.json). |
-| `$v` | An object with variables, like `$v['cache']`, which stores an object for caching values for later executions. |
-
-**Keep in mind**: Code is always executed synchronous and NOT via things like [promises](https://developers.google.com/web/fundamentals/primers/promises)!
 
 ##### Environment variables [[&uarr;](#placeholders-)]
 
