@@ -269,7 +269,7 @@ export class WebDAVFileSystem extends vscrw_fs.FileSystemBase {
             const WF = vscode_helpers.buildWorkflow();
 
             return WF.next(() => {
-                return new Promise<string[]>((resolve, reject) => {
+                return new Promise<WebDAV.ConnectionReaddirComplexResult[]>((resolve, reject) => {
                     const COMPLETED = vscode_helpers.createCompletedAction(resolve, reject);
 
                     try {
@@ -277,14 +277,14 @@ export class WebDAVFileSystem extends vscrw_fs.FileSystemBase {
                             toWebDAVPath(uri.path),
                             {
                                 extraProperties: [],
-                                properties: false,
+                                properties: true,
                             },
-                            (err: any, files: string[]) => {
+                            (err: any, files: WebDAV.ConnectionReaddirComplexResult[]) => {
                                 if (err) {
                                     COMPLETED(err);
                                 } else {
-                                    COMPLETED(null,
-                                              vscode_helpers.asArray(files));
+                                    files.shift();
+                                    COMPLETED(null, files);
                                 }
                             }
                         );
@@ -317,12 +317,22 @@ export class WebDAVFileSystem extends vscrw_fs.FileSystemBase {
                             const F = files.shift();
 
                             try {
-                                ALL_RESULTS.push(
-                                    await this.getDetails(
-                                        uriWithNewPath(uri,
-                                                       vscrw.normalizePath(uri.path) + '/' + F)
-                                    )
-                                );
+                                const creationDate = Moment(
+                                    F.creationDate
+                                ).unix();
+                                const lastModified = Moment(
+                                    F.lastModified
+                                ).unix()
+                                const w = {
+                                    creationDate: isNaN(creationDate) ? 0 : creationDate,
+                                    lastModified: isNaN(lastModified) ? 0 : lastModified,
+                                    name: F.name,
+                                    size: isNaN(F.size) ? 0 : F.size,
+                                    type: (F.type === "directory" ? 'd' : 'f') as WebDAVReaddirComplexResult["type"],
+                                }
+                                if(w.name !== "") {
+                                    ALL_RESULTS.push(w);
+                                }
                             } catch { }
 
                             await GET_NEXT_PROPERTIES();
