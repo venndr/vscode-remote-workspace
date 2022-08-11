@@ -1,23 +1,17 @@
 {
-    "name": "vscode-remote-workspace",
-    "displayName": "Remote Workspace",
-    "description": "Multi protocol support (like Azure, Dropbox, S3, (S)FTP or Slack) for handling remote files like local ones.",
-    "version": "0.45.0-venndr",
-    "publisher": "mkloubert",
+    "name": "vscode-webdav-workspace",
+    "displayName": "Remote WebDav Workspace",
+    "description": "WebDav support for handling remote files like local ones. Fork of mkloubert.vscode-webdav-workspace",
+    "version": "0.46.0",
+    "publisher": "venndr",
     "engines": {
         "vscode": "^1.42.0"
     },
     "categories": [
-        "Azure",
         "Other"
     ],
     "keywords": [
-        "Dropbox",
-        "FTP",
-        "S3",
-        "SFTP",
-        "WebDAV",
-        "multi-root ready"
+        "WebDAV"
     ],
     "activationEvents": [
         "onFileSystem:azure",
@@ -46,16 +40,6 @@
     "main": "./out/extension",
     "contributes": {
         "commands": [
-            {
-                "command": "extension.remote.workspace.executeGit",
-                "title": "Execute 'git' Command ...",
-                "category": "Remote Workspace"
-            },
-            {
-                "command": "extension.remote.workspace.executeRemoteCommmand",
-                "title": "Execute Remote Command ...",
-                "category": "Remote Workspace"
-            },
             {
                 "command": "extension.remote.workspace.openURI",
                 "title": "Open URI ...",
@@ -88,21 +72,13 @@
     },
     "icon": "icon.png",
     "badges": [
-        {
-            "description": "PayPal Donate",
-            "url": "https://img.shields.io/badge/Donate-PayPal-green.svg",
-            "href": "https://paypal.me/MarcelKloubert"
-        }
     ],
-    "author": {
-        "name": "Marcel Joachim Kloubert"
-    },
     "repository": {
         "type": "git",
-        "url": "https://github.com/mkloubert/vscode-remote-workspace"
+        "url": "https://github.com/venndr/vscode-webdav-workspace"
     },
     "bugs": {
-        "url": "https://github.com/mkloubert/vscode-remote-workspace/issues"
+        "url": "https://github.com/venndr/vscode-webdav-workspace/issues"
     },
     "readmeFilename": "README.md",
     "devDependencies": {

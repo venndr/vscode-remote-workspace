@@ -1,14 +1,14 @@
 'use strict';
 
 /**
- * This file is part of the vscode-remote-workspace distribution.
+ * This file is part of the vscode-webdav-workspace distribution.
  * Copyright (c) Marcel Joachim Kloubert.
  *
- * vscode-remote-workspace is free software: you can redistribute it and/or modify
+ * vscode-webdav-workspace is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3.
  *
- * vscode-remote-workspace is distributed in the hope that it will be useful, but
+ * vscode-webdav-workspace is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
@@ -31,13 +31,6 @@ import * as URL from 'url';
 import * as vscode from 'vscode';
 import * as vscode_helpers from 'vscode-helpers';
 import * as vscrw_fs from './fs';
-import * as vscrw_fs_azure from './fs/azure';
-import * as vscrw_fs_dropbox from './fs/dropbox';
-import * as vscrw_fs_ftp from './fs/ftp';
-import * as vscrw_fs_ftps from './fs/ftps';
-import * as vscrw_fs_s3 from './fs/s3';
-import * as vscrw_fs_sftp from './fs/sftp';
-import * as vscrw_fs_slack from './fs/slack';
 import * as vscrw_fs_webdav from './fs/webdav';
 import * as vscrw_values from './values';
 
@@ -164,7 +157,7 @@ export const EVENT_EXECUTE_REMOTE_COMMAND = 'vscrwExecuteRemoteCommand';
 /**
  * The name of the extension's directory inside the user's home directory.
  */
-export const EXTENSION_DIR = '.vscode-remote-workspace';
+export const EXTENSION_DIR = '.vscode-webdav-workspace';
 let extension: vscode.ExtensionContext;
 let isDeactivating = false;
 const KEY_LAST_GIT_ARGS = 'vscrwLastGitArgs';
@@ -313,14 +306,8 @@ export async function activate(context: vscode.ExtensionContext) {
             outputChannel.appendLine(`${packageFile.displayName} (${packageFile.name}) - v${packageFile.version}`);
         }
 
-        outputChannel.appendLine(`Copyright (c) 2018-${NOW.format('YYYY')}  Marcel Joachim Kloubert <marcel.kloubert@gmx.net>`);
         outputChannel.appendLine('');
-        outputChannel.appendLine(`GitHub : https://github.com/mkloubert/vscode-remote-workspace`);
-        outputChannel.appendLine(`Twitter: https://twitter.com/mjkloubert`);
-        outputChannel.appendLine(`Donate : https://paypal.me/MarcelKloubert`);
-
-        outputChannel.appendLine('');
-        outputChannel.appendLine('Initializing ...');
+        outputChannel.appendLine('Initializing WebDav extension...');
         outputChannel.appendLine('');
     });
 
@@ -360,176 +347,6 @@ export async function activate(context: vscode.ExtensionContext) {
     // commands
     WF.next(() => {
         context.subscriptions.push(
-            // executeGit()
-            vscode.commands.registerCommand('extension.remote.workspace.executeGit', async () => {
-                try {
-                    const WORKSPACES = vscode_helpers.asArray(
-                        vscode.workspace.workspaceFolders
-                    ).filter(ws => {
-                        return isRemoteExecutionSupported(ws.uri);
-                    });
-
-                    const QUICK_PICKS: ActionQuickPickItem[] = vscode_helpers.from(
-                        WORKSPACES
-                    ).orderBy(x => vscode_helpers.normalizeString(x.name))
-                     .thenBy(x => x.index)
-                     .select(ws => {
-                                 let name = vscode_helpers.toStringSafe(ws.name);
-                                 if ('' === name) {
-                                     name = `Workspace #${ ws.index }`;
-                                 }
-
-                                 return {
-                                     action: async () => {
-                                         const GIT_ARGS_KEY = toUriKey(ws.uri);
-
-                                         const REPO = getStringRepo( KEY_LAST_GIT_ARGS );
-                                         const LGA = REPO[ GIT_ARGS_KEY ];
-
-                                         let gitArgs = await vscode.window.showInputBox({
-                                             ignoreFocusOut: true,
-                                             placeHolder: "Enter arguments for 'git' command ('--version', e.g.)",
-                                             value: LGA,
-                                         });
-
-                                         if (vscode_helpers.isEmptyString(gitArgs)) {
-                                             return;
-                                         }
-
-                                         REPO[ GIT_ARGS_KEY ] = gitArgs;
-                                         await saveStringRepo( KEY_LAST_GIT_ARGS, REPO );
-
-                                         if (gitArgs.trim().startsWith('git ')) {
-                                             gitArgs = gitArgs.substr(gitArgs.indexOf('git ') + 4);
-                                         }
-
-                                         const COMMAND_TO_EXECUTE = `git ${ gitArgs }`;
-
-                                         outputChannel.show();
-                                         try {
-                                             await executeRemoteCommand(ws.uri, COMMAND_TO_EXECUTE);
-                                         } catch (e) {
-                                             logger.trace(e, 'extension.remote.workspace.executeGit(1)');
-                                         }
-                                     },
-                                     label: name,
-                                     detail: `${ ws.uri }`,
-                                 };
-                             })
-                     .toArray();
-
-                    if (QUICK_PICKS.length < 1) {
-                        vscode.window.showWarningMessage(
-                            "No supported workspace found, for running 'git' command!"
-                        );
-
-                        return;
-                    }
-
-                    let selectedItem: ActionQuickPickItem;
-                    if (1 === QUICK_PICKS.length) {
-                        selectedItem = QUICK_PICKS[0];
-                    } else {
-                        selectedItem = await vscode.window.showQuickPick(
-                            QUICK_PICKS,
-                            {
-                                placeHolder: "Select the workspace, where you want to run 'git' ...",
-                            }
-                        );
-                    }
-
-                    if (selectedItem) {
-                        if (selectedItem.action) {
-                            await selectedItem.action();
-                        }
-                    }
-                } catch (e) {
-                    showError(e);
-                }
-            }),
-
-            // executeRemoteCommmand
-            vscode.commands.registerCommand('extension.remote.workspace.executeRemoteCommmand', async () => {
-                try {
-                    const WORKSPACES = vscode_helpers.asArray(
-                        vscode.workspace.workspaceFolders
-                    ).filter(ws => {
-                        return isRemoteExecutionSupported(ws.uri);
-                    });
-
-                    const QUICK_PICKS: ActionQuickPickItem[] = vscode_helpers.from(
-                        WORKSPACES
-                    ).orderBy(x => vscode_helpers.normalizeString(x.name))
-                     .thenBy(x => x.index)
-                     .select(ws => {
-                                 let name = vscode_helpers.toStringSafe(ws.name);
-                                 if ('' === name) {
-                                     name = `Workspace #${ ws.index }`;
-                                 }
-
-                                 return {
-                                     action: async () => {
-                                         const CMD_KEY = toUriKey(ws.uri);
-
-                                         const REPO = getStringRepo( KEY_LAST_REMOTE_COMMANDS );
-                                         const LGA = REPO[ CMD_KEY ];
-
-                                         const CMD_TO_EXECUTE = await vscode.window.showInputBox({
-                                             ignoreFocusOut: true,
-                                             placeHolder: "Enter the command to execute ...",
-                                             value: LGA,
-                                         });
-
-                                         if (vscode_helpers.isEmptyString(CMD_TO_EXECUTE)) {
-                                             return;
-                                         }
-
-                                         REPO[ CMD_KEY ] = CMD_TO_EXECUTE;
-                                         await saveStringRepo( KEY_LAST_REMOTE_COMMANDS, REPO );
-
-                                         outputChannel.show();
-                                         try {
-                                             await executeRemoteCommand(ws.uri, CMD_TO_EXECUTE);
-                                         } catch (e) {
-                                             logger.trace(e, 'extension.remote.workspace.executeRemoteCommmand(1)');
-                                         }
-                                     },
-                                     label: name,
-                                     detail: `${ ws.uri }`,
-                                 };
-                             })
-                     .toArray();
-
-                    if (QUICK_PICKS.length < 1) {
-                        vscode.window.showWarningMessage(
-                            "No supported workspace found, for running a remote command!"
-                        );
-
-                        return;
-                    }
-
-                    let selectedItem: ActionQuickPickItem;
-                    if (1 === QUICK_PICKS.length) {
-                        selectedItem = QUICK_PICKS[0];
-                    } else {
-                        selectedItem = await vscode.window.showQuickPick(
-                            QUICK_PICKS,
-                            {
-                                placeHolder: "Select the workspace, where you want to run the command ...",
-                            }
-                        );
-                    }
-
-                    if (selectedItem) {
-                        if (selectedItem.action) {
-                            await selectedItem.action();
-                        }
-                    }
-                } catch (e) {
-                    showError(e);
-                }
-            }),
-
             // openURI
             vscode.commands.registerCommand('extension.remote.workspace.openURI', async () => {
                 try {
@@ -756,12 +573,6 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             }),
 
-            // resetRemoteCommandHistory
-            vscode.commands.registerCommand('extension.remote.workspace.resetRemoteCommandHistory', async () => {
-                await saveStringRepo(KEY_LAST_GIT_ARGS, undefined);
-                await saveStringRepo(KEY_LAST_REMOTE_COMMANDS, undefined);
-            }),
-
             // sendWorkspaceURI
             vscode.commands.registerCommand('extension.remote.workspace.sendWorkspaceURI', async () => {
                 try {
@@ -964,86 +775,6 @@ export function deactivate() {
 }
 
 /**
- * Executes a command on a remote workspace.
- *
- * @param {vscode.Uri} uri The URI where to execute.
- * @param {string} cmd The command to execute.
- *
- * @return {Promise<ExecuteRemoteCommandResult>} The promise with the result of the execution.
- */
-export function executeRemoteCommand(uri: vscode.Uri, cmd: string) {
-    cmd = vscode_helpers.toStringSafe(cmd);
-
-    return new Promise<ExecuteRemoteCommandResult>((resolve, reject) => {
-        let completedExecuted = false;
-        const COMPLETED = (err: any, result?: ExecuteRemoteCommandResult) => {
-            if (completedExecuted) {
-                return;
-            }
-            completedExecuted = true;
-
-            if (err) {
-                let errMsg: string;
-                if (err instanceof Error) {
-                    errMsg = `${
-                        vscode_helpers.isEmptyString(err.name) ? '' : `(${ vscode_helpers.toStringSafe(err.name).trim() }) `
-                    }${ vscode_helpers.toStringSafe(err.message) }`;
-                } else {
-                    errMsg = vscode_helpers.toStringSafe(err);
-                }
-
-                outputChannel.appendLine(`[ERROR: '${ errMsg }']`);
-                outputChannel.appendLine('');
-
-                reject(err);
-            } else {
-                outputChannel.appendLine('[Done]');
-                outputChannel.appendLine('');
-
-                if (result && result.stdOut && result.stdOut.length > 0) {
-                    outputChannel.appendLine('');
-                    outputChannel.appendLine( result.stdOut.toString('utf8') );
-                }
-
-                resolve(result);
-            }
-        };
-
-        let executionCount = 0;
-
-        const ARGS: ExecuteRemoteCommandArguments = {
-            callback: (err, response) => {
-                COMPLETED(err, response);
-            },
-            command: cmd,
-            executionCount: undefined,
-            increaseExecutionCounter: () => {
-                ++executionCount;
-            },
-            uri: uri,
-        };
-
-        // ARGS.executionCount
-        Object.defineProperty(ARGS, 'executionCount', {
-            get: () => {
-                return executionCount;
-            }
-        });
-
-        try {
-            outputChannel.append(`Executing '${ cmd }' on '${ uriWithoutAuthority(uri) }' ... `);
-
-            vscode_helpers.EVENTS.emit(
-                EVENT_EXECUTE_REMOTE_COMMAND,
-                ARGS,
-            );
-        } catch (e) {
-            COMPLETED(e);
-        }
-    });
-}
-
-/**
  * Extracts the host, port and credentials from an URI.
  *
  * @param {vscode.Uri} uri The URI.
@@ -1147,14 +878,7 @@ export async function extractHostAndCredentials(uri: vscode.Uri, defaultPort?: n
 
 function getClasses() {
     return [
-        vscrw_fs_sftp.SFTPFileSystem,
-        vscrw_fs_ftp.FTPFileSystem,
-        vscrw_fs_dropbox.DropboxFileSystem,
-        vscrw_fs_azure.AzureBlobFileSystem,
-        vscrw_fs_s3.S3FileSystem,
-        vscrw_fs_slack.SlackFileSystem,
-        vscrw_fs_webdav.WebDAVFileSystem,
-        vscrw_fs_ftps.FTPsFileSystem,
+        vscrw_fs_webdav.WebDAVFileSystem
     ];
 }
 
@@ -1270,18 +994,6 @@ export function getUriParams(uri: URL.Url | vscode.Uri): KeyValuePairs<string> {
 }
 
 function isRemoteExecutionSupported(uri: vscode.Uri) {
-    if (uri) {
-        const SCHEME = vscode_helpers.normalizeString(uri.scheme);
-
-        switch (SCHEME) {
-            case vscrw_fs_ftp.FTPFileSystem.scheme:
-            case vscrw_fs_ftps.FTPsFileSystem.scheme:
-            case vscrw_fs_sftp.SFTPFileSystem.scheme:
-                return REGISTRATED_SCHEMES.map(rs => rs.scheme)
-                                          .indexOf(SCHEME) > -1;
-        }
-    }
-
     return false;
 }
 
@@ -1433,9 +1145,6 @@ export function uriWithoutAuthority(uri: vscode.Uri): vscode.Uri {
 
         let authority = '';
         switch (SCHEME) {
-            case vscrw_fs_ftp.FTPFileSystem.scheme:
-            case vscrw_fs_ftps.FTPsFileSystem.scheme:
-            case vscrw_fs_sftp.SFTPFileSystem.scheme:
             case vscrw_fs_webdav.WebDAVFileSystem.scheme:
                 {
                     authority = vscode_helpers.toStringSafe(uri.authority);

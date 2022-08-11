@@ -1,12 +1,12 @@
 /**
- * This file is part of the vscode-remote-workspace distribution.
+ * This file is part of the vscode-webdav-workspace distribution.
  * Copyright (c) Marcel Joachim Kloubert.
  *
- * vscode-remote-workspace is free software: you can redistribute it and/or modify
+ * vscode-webdav-workspace is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as
  * published by the Free Software Foundation, version 3.
  *
- * vscode-remote-workspace is distributed in the hope that it will be useful, but
+ * vscode-webdav-workspace is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * Lesser General Public License for more details.
@@ -62,12 +62,12 @@ export abstract class FileSystemBase extends vscode_helpers.DisposableBase imple
     /**
      * @inheritdoc
      */
-    public abstract async createDirectory(uri: vscode.Uri);
+    public abstract createDirectory(uri: vscode.Uri);
 
     /**
      * @inheritdoc
      */
-    public abstract async delete(uri: vscode.Uri, options: { recursive: boolean });
+    public abstract delete(uri: vscode.Uri, options: { recursive: boolean });
 
     /**
      * Gets the logger for that file system provider.
@@ -86,22 +86,22 @@ export abstract class FileSystemBase extends vscode_helpers.DisposableBase imple
     /**
      * @inheritdoc
      */
-    public abstract async readDirectory(uri: vscode.Uri): Promise<DirectoryEntry[]>;
+    public abstract readDirectory(uri: vscode.Uri): Promise<DirectoryEntry[]>;
 
     /**
      * @inheritdoc
      */
-    public abstract async readFile(uri: vscode.Uri): Promise<Uint8Array>;
+    public abstract readFile(uri: vscode.Uri): Promise<Uint8Array>;
 
     /**
      * @inheritdoc
      */
-    public abstract async rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void>;
+    public abstract rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: { overwrite: boolean }): Promise<void>;
 
     /**
      * @inheritdoc
      */
-    public abstract async stat(uri: vscode.Uri): Promise<vscode.FileStat>;
+    public abstract stat(uri: vscode.Uri): Promise<vscode.FileStat>;
 
     /**
      * Throw an exception if writing a file is not allowed.
@@ -154,5 +154,5 @@ export abstract class FileSystemBase extends vscode_helpers.DisposableBase imple
     /**
      * @inheritdoc
      */
-    public abstract async writeFile(uri: vscode.Uri, content: Uint8Array, options: WriteFileOptions): Promise<void>;
+    public abstract writeFile(uri: vscode.Uri, content: Uint8Array, options: WriteFileOptions): Promise<void>;
 }
